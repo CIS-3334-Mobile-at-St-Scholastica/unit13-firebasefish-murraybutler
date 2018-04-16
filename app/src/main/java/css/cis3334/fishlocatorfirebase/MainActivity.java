@@ -39,7 +39,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupFirebaseDataChange() {
-        // ToDo - Add code here to update the listview with data from Firebase
+        fishDataSource = new FishFirebaseData();
+        DatabaseReference fishRef = fishDataSource.open();
+
+        fishRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot bigShot : dataSnapshot.getChildren()) {
+                    Fish pushFish = bigShot.getValue(Fish.class);
+                    fishList.add(pushFish);
+                }
+                fishAdapter = new FishAdapter(MainActivity.this, android.R.layout.simple_list_item_single_choice, fishList);
+                listViewFish.setAdapter(fishAdapter);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void setupListView() {
