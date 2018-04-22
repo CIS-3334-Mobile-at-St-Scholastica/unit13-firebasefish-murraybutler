@@ -1,5 +1,7 @@
 package css.cis3334.fishlocatorfirebase;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -32,10 +34,10 @@ public class MainActivity extends AppCompatActivity {
     List<Fish> fishList;
     int positionSelected;
     FishFirebaseData fishDataSource;
-    String[] credsArr;
+    FirebaseAuth mAuth;
+    FirebaseAuth.AuthStateListener mAuthListener;
 
-    private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
+    static final int AUTH_REQ = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,22 +48,19 @@ public class MainActivity extends AppCompatActivity {
         mAuthListener = new FirebaseAuth.AuthStateListener() { //initialized mAuthListener
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                Log.d("CSS3334","AuthStateChange call");
                 //track the user when they sign in or out using the firebaseAuth
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
                     // User is signed out
                     Log.d("CSS3334","onAuthStateChanged - User NOT is signed in");
                     Intent signInIntent = new Intent(getBaseContext(), LoginActivity.class);
-                    startActivity(signInIntent);
+                    Log.d("CSS3334","Set Intent");
+                    startActivityForResult(signInIntent,AUTH_REQ);
+                    Log.d("CSS3334","Started Login Activity");
                 }
             }
         };
-
-        setupListView();
-        setupAddButton();
-        setupDetailButton();
-        setupDeleteButton();
-        setupFirebaseDataChange();
     }
 
     private void setupFirebaseDataChange() {
@@ -142,11 +141,34 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         mAuth.removeAuthStateListener(mAuthListener);
+        mAuth.signOut();
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                setupListView();
+                Log.d("CSS3334","Got past ListView setup");
+                setupAddButton();
+                Log.d("CSS3334","Got past AddButton setup");
+                setupDetailButton();
+                Log.d("CSS3334","Got past DetailButton setup");
+                setupDeleteButton();
+                Log.d("CSS3334","Got past DeleteButton setup");
+                setupFirebaseDataChange();
+                Log.d("CSS3334","Got past FireBase setup");
+            } else {
+                finishAndRemoveTask();
+            }
+        }
+    }//onActivityResult
 }
